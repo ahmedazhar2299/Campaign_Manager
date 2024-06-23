@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import *
-
+import re
 
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -18,6 +18,11 @@ class TemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Template
         fields = '__all__'
+    def create(self,validated_data):
+            template_text=validated_data.pop('content')
+            validated_data['template']=re.sub(r'%(\w+)%', r'{{ \1 }}', template_text)
+            template= Template.objects.create(**validated_data)
+            return template
 
 
 class CampaignSerializer(serializers.ModelSerializer):
