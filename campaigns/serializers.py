@@ -20,7 +20,7 @@ class TemplateSerializer(serializers.ModelSerializer):
         fields = '__all__'
     def create(self,validated_data):
             template_text=validated_data.pop('content')
-            validated_data['template']=re.sub(r'%(\w+)%', r'{{ \1 }}', template_text)
+            validated_data['content']=re.sub(r'%(\w+)%', r'{{ \1 }}', template_text)
             template= Template.objects.create(**validated_data)
             return template
 

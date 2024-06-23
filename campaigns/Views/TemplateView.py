@@ -4,7 +4,7 @@ from campaigns.models import Template, Campaign, Customer
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+from ..utils import render_text_template
 
 class FetchTemplate(APIView):
     """
@@ -18,10 +18,13 @@ class FetchTemplate(APIView):
             template = Campaign.objects.filter(id=campaign_id).values_list('template__content',flat=True).first()
             customer = Customer.objects.filter(id=customer_id).first()
             if template and customer:
-                template = template.replace('%first_name%', customer.first_name)
-                template = template.replace('%last_name%', customer.last_name)
-                template = template.replace('%company%', customer.company)
-                return Response({"success": True,"message": "Template Retrieved Successfully!", 'data': {'template_content': template}}, status=status.HTTP_200_OK)
+                context={
+                    'first_name':customer.first_name,
+                    'last_name':customer.last_name,
+                    'company':customer.company
+                }
+                template_content=render_text_template(template,context)
+                return Response({"success": True,"message": "Template Retrieved Successfully!", 'data': {'template_content': template_content}}, status=status.HTTP_200_OK)
 
         return Response({"success": False,"message": "Invalid Parmas"}, status=status.HTTP_404_NOT_FOUND)
 
