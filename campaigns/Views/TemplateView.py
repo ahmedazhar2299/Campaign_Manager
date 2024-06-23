@@ -1,10 +1,10 @@
 
 from campaigns.serializers import TemplateSerializer, CampaignSerializer
-from campaigns.models import Template, Campaign, Customer
+from campaigns.models import CampaignCustomers, Template, Campaign, Customer
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
+from ..utils import render_text_template
 
 class FetchTemplate(APIView):
     """
@@ -18,10 +18,13 @@ class FetchTemplate(APIView):
             template = Campaign.objects.filter(id=campaign_id).values_list('template__content',flat=True).first()
             customer = Customer.objects.filter(id=customer_id).first()
             if template and customer:
-                template = template.replace('%first_name%', customer.first_name)
-                template = template.replace('%last_name%', customer.last_name)
-                template = template.replace('%company%', customer.company)
-                return Response({"success": True,"message": "Template Retrieved Successfully!", 'data': {'template_content': template}}, status=status.HTTP_200_OK)
+                context={
+                    'first_name':customer.first_name,
+                    'last_name':customer.last_name,
+                    'company':customer.company
+                }
+                template_content=render_text_template(template,context)
+                return Response({"success": True,"message": "Template Retrieved Successfully!", 'data': {'template_content': template_content}}, status=status.HTTP_200_OK)
 
         return Response({"success": False,"message": "Invalid Parmas"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -65,3 +68,30 @@ class UpdateTemplate(generics.RetrieveUpdateAPIView):
 
     def get(self, request, *args, **kwargs):
         return Response({"message": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+class GetMessageFromTemplate(APIView):
+    def get(self,request,*args,**kwargs):
+        try:
+            campaign_id=request.query_params.get('campaign_id',None)
+            if campaign_id is None:
+                return Response({"error":" Campaign id are required"})
+            campaign = Campaign.objects.filter(id=campaign_id).first()
+            campaign_customers=CampaignCustomers.objects.filter(campaign=campaign)
+
+            messages=[]
+            for customer in campaign_customers.all():
+                context={
+                    'first_name':customer.customer.first_name,
+                    'last_name':customer.customer.last_name,
+                    'company':customer.customer.company
+                }
+                message=render_text_template(campaign.template.content,context)
+                messages.append(message)
+
+            return Response({"success":"true","message":"All Customers Message Generated Successfully","data":{'content':messages}},status=200)
+        except Exception as e:
+            error=str(e)
+            print(error)
+            return Response({"error":f"Unexpected error {error}"},status=400)
+
