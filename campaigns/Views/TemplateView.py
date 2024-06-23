@@ -89,7 +89,7 @@ class GetMessageFromTemplate(APIView):
                 message=render_text_template(campaign.template.content,context)
                 messages.append(message)
 
-            return Response({"data":messages},status=200)
+            return Response({"success":"true","message":"All Customers Message Generated Successfully","data":{'content':messages}},status=200)
         except Exception as e:
             error=str(e)
             print(error)
