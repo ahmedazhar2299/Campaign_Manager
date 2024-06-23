@@ -14,4 +14,5 @@ urlpatterns = [
     path('template/update/<int:pk>/', UpdateTemplate.as_view(), name='template_update'),
     path('company/',CompanyListCreate.as_view(),name="company_create_list"),
     path('company/<int:id>/',CompanyDetail.as_view(),name="company_detail_destroy_update"),
+    path('generate_messages/',GetMessageFromTemplate.as_view(),name="generate_messages"),
 ]
