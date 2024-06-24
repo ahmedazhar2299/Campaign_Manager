@@ -6,12 +6,12 @@ from . import models
 
 @admin.register(models.Template)
 class TemplateAdmin(admin.ModelAdmin):
-    list_display=('id','name','content','created_on')
+    list_display=('id','name','content','date')
 
 
 @admin.register(models.Campaign)
 class CampaignAdmin(admin.ModelAdmin):
-    list_display=('id','created_on')
+    list_display=('id','company', 'template', 'budget', 'status','date')
 
 
 @admin.register(models.Company)

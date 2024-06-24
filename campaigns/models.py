@@ -5,17 +5,6 @@ from datetime import datetime
 
 # Create your models here.
 
-class Customer(models.Model):
-    first_name = models.CharField(max_length=50, null=True, blank=True, default='')
-    last_name = models.CharField(max_length=50, null=True, blank=True, default='')
-    created_on = models.DateTimeField(auto_now_add=True)
-    updated_on = models.DateTimeField(auto_now=True)
-    # 1-1 relationship between customer and company, using Charfield for testing
-    company = models.CharField(max_length=100, default='', null=True, blank=True)
-
-    class Meta:
-        db_table = "customer"
-
 
 class Company(models.Model):
     company_name = models.CharField(max_length=100, null=True, blank=True, default='')
@@ -25,10 +14,22 @@ class Company(models.Model):
         db_table = "company"
 
 
+class Customer(models.Model):
+    first_name = models.CharField(max_length=50, null=True, blank=True, default='')
+    last_name = models.CharField(max_length=50, null=True, blank=True, default='')
+    created_on = models.DateTimeField(auto_now_add=True)
+    category = models.CharField(max_length=50, default='new', choices=[('new', 'New'), ('regular', 'Regular'), ('vip', 'VIP')],  null=False, blank=True)
+    updated_on = models.DateTimeField(auto_now=True)
+    company = models.ForeignKey(Company, db_column='company_id', null=True, on_delete=CASCADE,
+                                    related_name='customer_company')
+
+    class Meta:
+        db_table = "customer"
+
 class Template(models.Model):
     name = models.CharField(max_length=100, null=False, blank=False)
     content = models.TextField(null=False, blank=False)
-    created_on = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -37,10 +38,14 @@ class Template(models.Model):
 
 class Campaign(models.Model):
     # 1-1 relationship between campaign and company, using Charfield for testing
-    company = models.CharField(max_length=100, default='', null=True, blank=True)
+    name = models.CharField(max_length=100, default='', null=False, blank=True)
+    budget = models.IntegerField(default=0, null=True, blank=True)
+    status = models.CharField(max_length=50, default='draft', choices=[('draft', 'Draft'), ('prepared', 'Prepared'), ('active', 'Active'), ('completed', 'Completed')],  null=False, blank=True)
+    company = models.ForeignKey(Company, db_column='company_id', null=True, on_delete=CASCADE,
+                                    related_name='campaign_company')
     template = models.OneToOneField(Template, db_column='template_id', null=True, on_delete=CASCADE,
                                     related_name='campaign_template')
-    created_on = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "campaign"
