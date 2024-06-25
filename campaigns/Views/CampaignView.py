@@ -15,12 +15,16 @@ class GetCampaign(generics.ListCreateAPIView):
 
     def get_queryset(self):
         queryset = Campaign.objects.all()
-        search_term = self.request.query_params.get('search_term')
+        search_term = self.request.query_params.get('search_term', '')
+        from_template = bool(self.request.query_params.get('from_template', False))
+
+        q_obj = Q()
         if search_term:
-            queryset = queryset.filter(
-                Q(name__icontains=search_term) |
-                Q(status__icontains=search_term)
-            )
+            q_obj &= (Q(name__icontains=search_term) | Q(status__icontains=search_term))
+        if from_template:
+            q_obj &= Q(template__isnull=True)
+
+        queryset = queryset.filter(q_obj)
         return queryset
 
     def list(self, request, *args, **kwargs):

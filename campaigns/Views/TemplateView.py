@@ -6,6 +6,34 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from ..utils import render_text_template
 
+
+class GetTemplate(generics.ListCreateAPIView):
+    queryset = Template.objects.all()
+    serializer_class = TemplateSerializer
+
+    def get_queryset(self):
+        queryset = Template.objects.all()
+        search_term = self.request.query_params.get('search_term', '')
+
+        if search_term:
+            queryset = queryset.filter(title__icontains=search_term)
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        data = serializer.data
+        
+        response_data = {
+            "success": True,
+            "message": "Retrieval success",
+            "data": data
+        }
+        return Response(response_data)
+
+    def post(self, request, *args, **kwargs):
+        return Response({"message": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
 class FetchTemplate(APIView):
     """
     API view to fetch template against a customer
