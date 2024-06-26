@@ -48,9 +48,14 @@ class CampaignSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation['date'] = instance.date.strftime('%Y-%m-%d')
         representation['status'] = representation['status'].capitalize() if representation['status'] else ''
+        audience_count = CampaignCustomers.objects.filter(campaign_id=representation['id']).count() if representation['id'] else 0
+        representation['audience'] = audience_count
         return representation
 
 class CampaignCustomersSerializer(serializers.ModelSerializer):
+    campaign_id = serializers.IntegerField()
+    customer_ids = serializers.ListField()
+
     class Meta:
         model = CampaignCustomers
         fields = '__all__'

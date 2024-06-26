@@ -13,11 +13,16 @@ class GetCustomers(generics.ListCreateAPIView):
     def get_queryset(self):
         queryset = Customer.objects.all()
         search_term = self.request.query_params.get('search_term')
+        campaign_id = self.request.query_params.get('campaign_id')
         if search_term:
             queryset = queryset.filter(
                 Q(first_name__icontains=search_term) |
                 Q(last_name__icontains=search_term)
+            
             )
+        if campaign_id:
+            queryset = queryset.filter(Q(campaign_customer__campaign_id=campaign_id))
+
         return queryset
 
     def list(self, request, *args, **kwargs):
