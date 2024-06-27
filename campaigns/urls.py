@@ -10,6 +10,7 @@ urlpatterns = [
     #            Campaign             #
     ###################################
     path("", GetCampaign.as_view(), name="campaign_fetch"),
+    path("detail/", GetCampaignDetail.as_view(), name="campaign_detail"),
     path("create/", CreateCampaign.as_view(), name="campaign_create"),
     path("add/", AddToCampaign.as_view(), name="campaign_add"),
     ###################################

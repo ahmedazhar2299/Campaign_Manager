@@ -1,9 +1,9 @@
-from campaigns.serializers import CampaignSerializer, CampaignCustomersSerializer
-from campaigns.models import Campaign, CampaignCustomers
+from campaigns.serializers import CampaignSerializer
+from campaigns.models import Campaign, CampaignCustomers, Customer
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.db.models import Q
+from django.db.models import Q, F
 
 
 """
@@ -42,6 +42,33 @@ class GetCampaign(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         return Response({"message": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+class GetCampaignDetail(APIView):
+    def get(self, request, *args, **kwargs):
+        campaign_id = request.GET.get('campaign_id', 0)
+        response = {
+            "success": False,
+            "message": "No data found",
+            "data" : {}
+        }
+        if campaign_id:
+            template_data = Campaign.objects.filter(id=campaign_id) \
+            .annotate(title=F('template__title'), greeting=F('template__greeting'), body=F('template__body'), ending=F('template__ending')) \
+            .values('title', 'greeting', 'body', 'ending').first()
+
+            customer_data = Customer.objects.filter(campaign_customer__campaign_id=campaign_id).values('id', 'first_name', 'last_name')
+            
+            if template_data or customer_data:
+                response = {
+                "success": True,
+                "message": "Add to Campaign success",
+                'data': {
+                    'template' : template_data,
+                    'customers' : customer_data 
+                }
+                }
+            
+        return Response(response)
     
 class CreateCampaign(generics.ListCreateAPIView):
     queryset = Campaign.objects.all()
