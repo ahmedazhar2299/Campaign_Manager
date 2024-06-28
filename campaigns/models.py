@@ -29,7 +29,6 @@ class Customer(models.Model):
 
 class Campaign(models.Model):
     name = models.CharField(max_length=100, default='', null=False, blank=True)
-    budget = models.IntegerField(default=0, null=True, blank=True)
     status = models.CharField(max_length=50, default='draft', choices=[('draft', 'Draft'), ('prepared', 'Prepared'), ('active', 'Active'), ('completed', 'Completed')],  null=False, blank=True)
     company = models.ForeignKey(Company, db_column='company_id', null=True, on_delete=CASCADE,
                                     related_name='campaign_company')

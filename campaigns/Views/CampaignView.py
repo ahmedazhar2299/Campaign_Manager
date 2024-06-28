@@ -1,5 +1,5 @@
 from campaigns.serializers import CampaignSerializer
-from campaigns.models import Campaign, CampaignCustomers, Customer
+from campaigns.models import Campaign, CampaignCustomers, Customer, Template
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -81,26 +81,30 @@ class AddToCampaign(APIView):
 
     def post(self, request, *args, **kwargs):
         campaign_id = request.POST.get('campaign_id', 0)
+        template_id = request.POST.get('template_id', 0)
         customer_ids = list(map(int,request.POST.getlist('customer_ids', [])))
-        response_data = {"success": False, "message": "Add to Campaign failure"}
+        response_data = {"success": False, "message": "Campaign add failure"}
 
         if campaign_id and customer_ids:
             existing_list = set(CampaignCustomers.objects.filter(campaign_id=campaign_id, customer_id__in=customer_ids).values_list('customer_id', flat=True))
             customer_ids = set(customer_ids).difference(existing_list)
-            print('print(existing_list)', existing_list)
-            print('print(customer_ids)', customer_ids)
             campaign_customers = [CampaignCustomers(campaign_id=campaign_id, customer_id=id) for id in customer_ids]
             if campaign_customers:
                 CampaignCustomers.objects.bulk_create(campaign_customers, batch_size=1000)
-                response_data = {
-                "success": True,
-                "message": "Add to Campaign success"
-                }
+                response_data["message"] ="Add to Campaign success"
+                response_data["success"] = True
             else:
-                response_data = {
-                "success": False,
-                "message": "Customer Already exists"
-                }
+                response_data["message"] = "Customer Already exists"
+        elif campaign_id and template_id:
+            template = Template.objects.filter(id=template_id, campaign_id__isnull=True).first()
+            if template:
+                template.campaign_id = campaign_id
+                template.save()
+                response_data["success"] = True
+                response_data["message"] = "Add to Campaign success"
+            else:
+                response_data["message"] = "Template already added to campaign"
+                
 
             
         return Response(response_data)

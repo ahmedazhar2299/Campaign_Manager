@@ -11,7 +11,7 @@ class TemplateAdmin(admin.ModelAdmin):
 
 @admin.register(models.Campaign)
 class CampaignAdmin(admin.ModelAdmin):
-    list_display=('id','company', 'budget', 'status','date')
+    list_display=('id','company', 'status','date')
 
 
 @admin.register(models.Company)
